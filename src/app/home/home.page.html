@@ -1,0 +1,136 @@
+<ion-header [translucent]="false" class="industrial-header">
+  <ion-toolbar class="toolbar-primary">
+    <ion-title>
+      <div class="brand-title">
+        <ion-icon name="cube-outline" aria-hidden="true"></ion-icon>
+        <span>LogiTrack Express</span>
+      </div>
+    </ion-title>
+    <ion-button
+      slot="end"
+      fill="clear"
+      class="reset-btn"
+      aria-label="Reiniciar datos de demostración de la cinta"
+      (click)="resetDemo()"
+    >
+      <ion-icon slot="icon-only" name="refresh-outline" aria-hidden="true"></ion-icon>
+    </ion-button>
+  </ion-toolbar>
+
+  <ion-toolbar class="toolbar-controls">
+    <ion-searchbar
+      class="tracking-searchbar"
+      placeholder="Buscar por código (ej. LTK-4092-ES)..."
+      inputmode="search"
+      [debounce]="250"
+      [value]="searchTerm()"
+      aria-label="Buscar paquete por código de seguimiento"
+      (ionInput)="onSearchInput($event)"
+    ></ion-searchbar>
+
+    <ion-segment
+      class="priority-segment"
+      [value]="selectedPriority()"
+      aria-label="Filtrar paquetes por nivel de prioridad"
+      (ionChange)="onPriorityChange($event)"
+    >
+      <ion-segment-button value="ALL">
+        <ion-label>Todos</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="CRITICAL">
+        <ion-label>Crítica</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="STANDARD">
+        <ion-label>Estándar</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="LOW">
+        <ion-label>Baja</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="industrial-content">
+  <main class="conveyor-container">
+    <header class="summary-bar" aria-label="Resumen de estado de la cinta">
+      <h1 class="sr-only">Terminal de recepción e inspección de paquetes LogiTrack Express</h1>
+      <div class="kpi-chip">
+        <span class="kpi-chip__label">Total</span>
+        <strong class="kpi-chip__value">{{ stats().total }}</strong>
+      </div>
+      <div class="kpi-chip kpi-chip--transit">
+        <span class="kpi-chip__label">En cinta</span>
+        <strong class="kpi-chip__value">{{ stats().inTransit }}</strong>
+      </div>
+      <div class="kpi-chip kpi-chip--inspected">
+        <span class="kpi-chip__label">Inspeccionados</span>
+        <strong class="kpi-chip__value">{{ stats().inspected }}</strong>
+      </div>
+      <div class="kpi-chip kpi-chip--rejected">
+        <span class="kpi-chip__label">Rechazados</span>
+        <strong class="kpi-chip__value">{{ stats().rejected }}</strong>
+      </div>
+    </header>
+
+    <p class="results-announcement" aria-live="polite">
+      Mostrando <strong>{{ filteredPackages().length }}</strong> de {{ stats().total }} paquetes en cinta.
+    </p>
+
+    <ion-list class="package-list" lines="none">
+      @for (pkg of filteredPackages(); track pkg.id) {
+        <ion-item-sliding #slidingItem class="package-sliding-item">
+          <ion-item class="package-list-item">
+            <app-package-card
+              [packageData]="pkg"
+              (statusChange)="handleStatusChange($event)"
+            ></app-package-card>
+          </ion-item>
+
+          <ion-item-options side="start">
+            <ion-item-option
+              class="slide-option slide-option--inspect"
+              [attr.aria-label]="'Deslizar para inspeccionar ' + pkg.trackingCode"
+              (click)="handleSlideAction(pkg.id, 'INSPECTED', slidingItem)"
+            >
+              <ion-icon slot="top" name="checkmark-done-outline" aria-hidden="true"></ion-icon>
+              Inspeccionar
+            </ion-item-option>
+          </ion-item-options>
+
+          <ion-item-options side="end">
+            <ion-item-option
+              class="slide-option slide-option--reject"
+              [attr.aria-label]="'Deslizar para rechazar ' + pkg.trackingCode"
+              (click)="handleSlideAction(pkg.id, 'REJECTED', slidingItem)"
+            >
+              <ion-icon slot="top" name="close-outline" aria-hidden="true"></ion-icon>
+              Rechazar
+            </ion-item-option>
+          </ion-item-options>
+        </ion-item-sliding>
+      } @empty {
+        <section class="empty-state" role="status" aria-live="polite">
+          <ion-icon name="warning-outline" aria-hidden="true" class="empty-state__icon"></ion-icon>
+          <h2 class="empty-state__title">Sin paquetes coincidentes</h2>
+          <p class="empty-state__text">
+            No se encontraron envíos en la cinta para los criterios de búsqueda y prioridad seleccionados.
+          </p>
+          @if (searchTerm() || selectedPriority() !== 'ALL') {
+            <ion-button fill="outline" class="empty-state__btn" (click)="resetDemo()">
+              Limpiar filtros
+            </ion-button>
+          }
+        </section>
+      }
+    </ion-list>
+  </main>
+
+  <ion-toast
+    [isOpen]="isToastOpen()"
+    [message]="toastMessage()"
+    [duration]="2200"
+    position="bottom"
+    cssClass="industrial-toast"
+    (didDismiss)="onToastDismiss()"
+  ></ion-toast>
+</ion-content>

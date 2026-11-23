@@ -1,0 +1,86 @@
+<article
+  class="package-card"
+  [class.status-in-transit]="packageData().status === 'IN_TRANSIT'"
+  [class.status-inspected]="packageData().status === 'INSPECTED'"
+  [class.status-rejected]="packageData().status === 'REJECTED'"
+  [attr.aria-label]="'Paquete ' + packageData().trackingCode + ', estado ' + statusLabel()"
+>
+  <div class="package-card__header">
+    <div class="package-card__title-group">
+      <ion-icon name="cube-outline" aria-hidden="true" class="package-card__lead-icon"></ion-icon>
+      <h2 class="package-card__code">{{ packageData().trackingCode }}</h2>
+    </div>
+
+    <div class="package-card__badges">
+      <ion-badge
+        class="badge-priority"
+        [class.badge-priority--critical]="packageData().priority === 'CRITICAL'"
+        [class.badge-priority--standard]="packageData().priority === 'STANDARD'"
+        [class.badge-priority--low]="packageData().priority === 'LOW'"
+      >
+        Prioridad: {{ priorityLabel() }}
+      </ion-badge>
+
+      <ion-badge
+        class="badge-status"
+        [class.badge-status--transit]="packageData().status === 'IN_TRANSIT'"
+        [class.badge-status--inspected]="packageData().status === 'INSPECTED'"
+        [class.badge-status--rejected]="packageData().status === 'REJECTED'"
+      >
+        {{ statusLabel() }}
+      </ion-badge>
+    </div>
+  </div>
+
+  <dl class="package-card__meta">
+    <div class="meta-item">
+      <dt class="sr-only">Destino</dt>
+      <dd>
+        <ion-icon name="location-outline" aria-hidden="true"></ion-icon>
+        <span>{{ packageData().destinationHub }}</span>
+      </dd>
+    </div>
+
+    <div class="meta-item">
+      <dt class="sr-only">Peso</dt>
+      <dd>
+        <ion-icon name="scale-outline" aria-hidden="true"></ion-icon>
+        <span>{{ packageData().weightKg | number: '1.1-1' }} kg</span>
+      </dd>
+    </div>
+
+    <div class="meta-item">
+      <dt class="sr-only">Último escaneo</dt>
+      <dd>
+        <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
+        <span>{{ packageData().timestamp | date: 'HH:mm:ss' }}</span>
+      </dd>
+    </div>
+  </dl>
+
+  <div class="package-card__actions" role="group" [attr.aria-label]="'Acciones para ' + packageData().trackingCode">
+    <ion-button
+      type="button"
+      class="action-btn action-btn--inspect"
+      fill="solid"
+      [disabled]="packageData().status === 'INSPECTED'"
+      [attr.aria-label]="'Marcar paquete ' + packageData().trackingCode + ' como inspeccionado'"
+      (click)="emitStatus('INSPECTED')"
+    >
+      <ion-icon slot="start" name="checkmark-circle-outline" aria-hidden="true"></ion-icon>
+      Inspeccionar
+    </ion-button>
+
+    <ion-button
+      type="button"
+      class="action-btn action-btn--reject"
+      fill="solid"
+      [disabled]="packageData().status === 'REJECTED'"
+      [attr.aria-label]="'Marcar paquete ' + packageData().trackingCode + ' como rechazado'"
+      (click)="emitStatus('REJECTED')"
+    >
+      <ion-icon slot="start" name="close-circle-outline" aria-hidden="true"></ion-icon>
+      Rechazar
+    </ion-button>
+  </div>
+</article>

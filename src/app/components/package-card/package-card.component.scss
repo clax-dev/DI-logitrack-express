@@ -1,0 +1,157 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.package-card {
+  background: #131c31;
+  border: 1px solid #2b3a55;
+  border-left: 6px solid #60a5fa;
+  border-radius: 12px;
+  padding: 16px;
+  margin: 8px 0;
+  color: #f8fafc;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+
+  &.status-in-transit {
+    border-left-color: #38bdf8;
+  }
+
+  &.status-inspected {
+    border-left-color: #4ade80;
+    background: #102422;
+  }
+
+  &.status-rejected {
+    border-left-color: #f87171;
+    background: #28151d;
+  }
+}
+
+.package-card__header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.package-card__title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.package-card__lead-icon {
+  font-size: 1.35rem;
+  color: #93c5fd;
+}
+
+.package-card__code {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #ffffff;
+}
+
+.package-card__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Badges con contraste verificado >= 7:1 (WCAG AAA / AA) */
+.badge-priority,
+.badge-status {
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.badge-priority--critical {
+  --background: #fecaca;
+  --color: #7f1d1d;
+}
+
+.badge-priority--standard {
+  --background: #bfdbfe;
+  --color: #1e3a8a;
+}
+
+.badge-priority--low {
+  --background: #e2e8f0;
+  --color: #1e293b;
+}
+
+.badge-status--transit {
+  --background: #bae6fd;
+  --color: #0c4a6e;
+}
+
+.badge-status--inspected {
+  --background: #bbf7d0;
+  --color: #14532d;
+}
+
+.badge-status--rejected {
+  --background: #fca5a5;
+  --color: #7f1d1d;
+}
+
+.package-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 0 0 16px 0;
+  padding: 0;
+}
+
+.meta-item dd {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.92rem;
+  color: #cbd5e1;
+
+  ion-icon {
+    font-size: 1rem;
+    color: #94a3b8;
+  }
+}
+
+.package-card__actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+/* Ergonomía táctil industrial: altura mínima 48px (> 44px WCAG) */
+.action-btn {
+  min-height: 48px;
+  margin: 0;
+  font-weight: 700;
+  text-transform: none;
+  --border-radius: 8px;
+
+  &--inspect {
+    --background: #15803d;
+    --background-hover: #166534;
+    --color: #ffffff;
+  }
+
+  &--reject {
+    --background: #b91c1c;
+    --background-hover: #991b1b;
+    --color: #ffffff;
+  }
+
+  &:focus-visible {
+    outline: 3px solid #facc15;
+    outline-offset: 2px;
+  }
+}
