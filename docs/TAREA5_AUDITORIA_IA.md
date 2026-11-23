@@ -28,3 +28,13 @@ onSearch(event: any) { // 4. Evento sin tipar
 - **Cero fugas de memoria:** Uso de `signal()` + `computed()` sin ninguna llamada manual a `.subscribe()`.
 - **Tipado estricto:** `IonSearchbarCustomEvent<SearchbarInputEventDetail>` en lugar de `any`.
 - **Rendimiento:** `ChangeDetectionStrategy.OnPush` y `[debounce]="250"` nativo del componente `ion-searchbar`.
+
+## 3. Auditoría aplicada al propio proyecto
+
+El código de partida también se auditó, probándolo en navegador en vez de dar por buena la documentación:
+
+1. **Mezcla de responsabilidades:** "Limpiar filtros" llamaba a `resetDemo()`, que además devolvía los paquetes a su estado inicial y borraba las inspecciones del operario. Se separa en `clearFilters()`.
+2. **Accesibilidad declarada pero no cumplida:** el segmento activo tenía texto `#0b1120` sobre fondo oscuro (≈ 1,3:1). Se rellena el botón activo con `--background-checked`.
+3. **Responsive:** `ion-segment-button` truncaba "Estándar" a 360 px por su `min-width: 90px`.
+
+Lección: el código generado (por IA o en una guía) puede compilar sin avisos y aun así tener fallos de comportamiento y de accesibilidad que solo aparecen al usarlo.

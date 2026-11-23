@@ -21,6 +21,23 @@ Proyecto de referencia docente para la **Actividad 2** del módulo **Desarrollo 
    - Filtrado reactivo mediante Signals (`searchTerm`, `selectedPriority`) y `computed()` con `[debounce]="250"` nativo, eliminando suscripciones manuales y fugas de memoria.
    - Incluye el documento de apoyo docente `docs/TAREA5_AUDITORIA_IA.md`.
 
+## Producción
+
+- **App desplegada:** <https://logitrack-express.vercel.app>
+- **Memoria técnica:** `docs/Memoria_LogiTrack_Express.pdf` (fuente: `docs/memoria.html`, capturas en `docs/capturas/`)
+
+## Auditoría del código de partida (correcciones aplicadas)
+
+Probado en navegador a 360, 820 y 1280 px. Se corrigieron tres fallos:
+
+| Fallo | Causa | Corrección |
+|---|---|---|
+| "Limpiar filtros" borraba las inspecciones hechas | El botón llamaba a `resetDemo()`, que también restaura los datos | Nuevo `clearFilters()` que solo limpia `searchTerm` y `selectedPriority` |
+| El segmento activo no se leía (contraste ≈ 1,3:1) | `--color-checked` oscuro, pero en modo `md` el indicador es solo una línea | `--background-checked: #38bdf8` (contraste > 7:1) |
+| "Estándar" truncado a 360 px | `min-width: 90px` por defecto en `ion-segment-button` | `min-width: 0` y menos relleno lateral |
+
+`vercel.json` declara además `outputDirectory: "www"` y el comando de build. Así no hay que configurarlos a mano en el panel de Vercel.
+
 ## Puesta en marcha local
 
 ```bash

@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Memoria · LogiTrack Express</title>
+<style>
+  @page { size: A4; margin: 15mm 15mm; }
+  * { box-sizing: border-box; }
+  body { font-family: "Segoe UI", system-ui, sans-serif; color: #0f172a; font-size: 10.3pt; line-height: 1.45; margin: 0; }
+  h1 { font-size: 21pt; margin: 0 0 4px; color: #0b1120; }
+  h1 span { color: #0284c7; }
+  h2 { break-after: avoid; font-size: 12.5pt; margin: 16px 0 6px; padding-bottom: 3px; border-bottom: 2px solid #bae6fd; color: #0c4a6e; }
+  p { margin: 4px 0 8px; }
+  code { font-family: Consolas, monospace; font-size: 8.8pt; background: #f1f5f9; padding: 1px 4px; border-radius: 3px; }
+  pre { font-family: Consolas, monospace; font-size: 8.4pt; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 10px; margin: 6px 0; white-space: pre; }
+  table { width: 100%; border-collapse: collapse; margin: 6px 0 10px; font-size: 9.3pt; break-inside: auto; }
+  tr { break-inside: avoid; }
+  th, td { border: 1px solid #cbd5e1; padding: 5px 7px; text-align: left; vertical-align: top; }
+  th { background: #e0f2fe; }
+  .meta { color: #475569; margin-bottom: 12px; }
+  .box { border: 1px solid #bae6fd; background: #f0f9ff; border-radius: 8px; padding: 8px 12px; margin: 8px 0; }
+  .links td:first-child { width: 24%; font-weight: 600; }
+  .shots { break-inside: avoid; display: flex; gap: 10px; align-items: flex-start; justify-content: center; }
+  .shots figure { margin: 0; text-align: center; }
+  .shots img { border: 1px solid #cbd5e1; border-radius: 6px; display: block; }
+  figcaption { font-size: 8.3pt; color: #475569; margin-top: 3px; }
+  .ok { color: #15803d; font-weight: 700; }
+  .bad { color: #b91c1c; font-weight: 700; }
+  ul { margin: 4px 0 8px; padding-left: 18px; }
+  li { margin: 2px 0; }
+</style>
+</head>
+<body>
+
+<h1>LogiTrack Express · <span>Terminal híbrida reactiva y accesible</span></h1>
+<div class="meta">Desarrollo de Interfaces (0488) · 2.º DAM · Actividad 2: Ionic 8 + Angular standalone, Signals, componente reutilizable, accesibilidad WCAG 2.1 AA, auditoría de código IA y despliegue en Vercel</div>
+
+<table class="links">
+  <tr><td>Despliegue (Vercel)</td><td><a href="https://logitrack-express.vercel.app">https://logitrack-express.vercel.app</a></td></tr>
+  <tr><td>Repositorio</td><td><code>https://github.com/clax-dev/DI-logitrack-express</code></td></tr>
+  <tr><td>Stack</td><td>Angular 19 (standalone, sin <code>NgModule</code>) · Ionic 8 · TypeScript estricto · Signals · Angular CLI (esbuild)</td></tr>
+</table>
+
+<h2>1. Objetivo</h2>
+<p>Terminal móvil/tablet para los operarios de un almacén: ven los paquetes que pasan por la cinta, los buscan por código o hub, los filtran por prioridad y los marcan como <em>inspeccionados</em> o <em>rechazados</em>, con botones o con gesto de deslizar. Se usa en naves con poca luz y con guantes, por eso el tema es oscuro de alto contraste y los botones son grandes.</p>
+
+<h2>2. Arquitectura y flujo de datos</h2>
+<pre>main.ts ─► bootstrapApplication(AppComponent, provideIonicAngular + provideRouter)
+              └─► /home (lazy, loadComponent) ─► HomePage           ← filtros, toast, orquesta
+                                                   ├─ PackageCardComponent  input.required / output
+                                                   └─ PackageService (inject)  signal privado + computed
+models/package.model.ts → tipos de dominio (WarehousePackage, PackageStatus, PackageStatusChangeEvent)</pre>
+<p><strong>Flujo unidireccional:</strong> el estado de los paquetes vive solo en <code>PackageService</code>, como un <code>signal</code> privado (<code>#packages</code>) que se expone en modo lectura (<code>asReadonly()</code>). <code>HomePage</code> deriva la lista filtrada con <code>computed()</code> y se la pasa a cada tarjeta por <code>input</code>. La tarjeta no conoce el servicio: emite un <code>output</code> con <code>{id, newStatus}</code> y la Home llama a <code>updatePackageStatus()</code>, que crea una lista nueva (inmutabilidad) en vez de modificar la existente.</p>
+
+<table>
+  <tr><th>Tarea</th><th>Qué se ha hecho</th><th>Por qué / alternativa descartada</th></tr>
+  <tr><td><strong>1. Andamiaje y modelo</strong></td><td>Standalone con <code>bootstrapApplication</code>; <code>strict</code> + <code>strictTemplates</code>; tipos unión (<code>'CRITICAL' | 'STANDARD' | 'LOW'</code>); estado en un servicio con Signals.</td><td>Los tipos unión hacen que un estado mal escrito falle al compilar. Descartado: <code>NgModule</code> (código de ceremonia) y <code>BehaviorSubject</code> (exige suscribirse y desuscribirse).</td></tr>
+  <tr><td><strong>2. Vista declarativa</strong></td><td><code>ion-searchbar</code>, <code>ion-segment</code>, <code>ion-list</code> + <code>ion-item-sliding</code>; control de flujo <code>@for … track pkg.id</code>, <code>@if</code>, <code>@empty</code>; iconos registrados con <code>addIcons</code>.</td><td><code>track pkg.id</code> evita volver a crear las tarjetas al filtrar. <code>addIcons</code> deja la consola sin avisos de iconos (comprobado: consola limpia).</td></tr>
+  <tr><td><strong>3. Componente reutilizable</strong></td><td><code>PackageCardComponent</code> sin dependencia del servicio: <code>input.required&lt;WarehousePackage&gt;()</code> y <code>output&lt;PackageStatusChangeEvent&gt;()</code>.</td><td>Es un componente "tonto": se puede reutilizar en otra pantalla o probar sin el servicio. Si cambia cómo se guardan los datos, la tarjeta no se toca.</td></tr>
+  <tr><td><strong>4. Accesibilidad</strong></td><td>Tema oscuro de alto contraste; botones de 48 px; <code>aria-label</code> descriptivos; iconos <code>aria-hidden</code>; contador con <code>aria-live="polite"</code>; <code>:focus-visible</code> amarillo; <code>h1</code> oculto con <code>.sr-only</code>.</td><td>48 px supera el mínimo de 44 px de WCAG porque se usa con guantes. El contador anuncia el número de resultados al lector de pantalla cuando se filtra.</td></tr>
+  <tr><td><strong>5. Auditoría IA</strong></td><td>Se sustituye el patrón típico de IA (<code>Subject&lt;any&gt;</code> + <code>.subscribe()</code> sin cancelar + <code>switchMap</code> innecesario) por <code>signal</code> + <code>computed</code> y el <code>[debounce]="250"</code> nativo del searchbar. Eventos tipados con <code>IonSearchbarCustomEvent</code>.</td><td>Sin suscripciones no hay fugas de memoria. <code>computed</code> solo recalcula cuando cambia una de sus fuentes. Detalle en <code>docs/TAREA5_AUDITORIA_IA.md</code>.</td></tr>
+</table>
+
+<h2>3. Auditoría propia del código de partida</h2>
+<p>Se aplicó el mismo criterio de la Tarea 5 al proyecto de referencia, probándolo en navegador (Playwright + Chrome) en lugar de fiarse de lo que promete el README. Se encontraron tres fallos reales:</p>
+<table>
+  <tr><th>Fallo detectado</th><th>Causa</th><th>Corrección</th></tr>
+  <tr><td><span class="bad">"Limpiar filtros" borraba el trabajo del operario.</span> Tras inspeccionar un paquete y pulsarlo, el contador de inspeccionados volvía de 3 a 2.</td><td>El botón llamaba a <code>resetDemo()</code>, que además de los filtros restaura los datos iniciales. Una sola función con dos responsabilidades.</td><td>Nuevo método <code>clearFilters()</code> que solo limpia <code>searchTerm</code> y <code>selectedPriority</code>. <span class="ok">Verificado: los inspeccionados se mantienen.</span></td></tr>
+  <tr><td><span class="bad">El filtro activo no se leía</span> (texto casi negro sobre fondo oscuro, contraste ≈ 1,3:1). Contradice la Tarea 4.</td><td><code>--color-checked: #0b1120</code> está pensado para un fondo relleno, pero en modo <code>md</code> el indicador es solo una línea inferior.</td><td><code>--background-checked: #38bdf8</code>: el botón activo se rellena de azul y el texto oscuro pasa a contraste &gt; 7:1.</td></tr>
+  <tr><td><span class="bad">"Estándar" aparecía cortado</span> ("Están…") a 360 px.</td><td><code>ion-segment-button</code> tiene <code>min-width: 90px</code> por defecto y 4 botones no caben.</td><td><code>min-width: 0</code> y menos relleno lateral. El placeholder del buscador también indica ahora que se busca por código <em>o</em> hub, que es lo que hace el filtro.</td></tr>
+</table>
+<p>Además, <code>vercel.json</code> declara <code>outputDirectory: "www"</code> y el comando de build. Sin eso, Vercel detecta Angular y busca la salida en <code>dist/</code>, así que había que configurarlo a mano en el panel.</p>
+<div class="box"><strong>Verificación final</strong> (local y en producción), a 360×800, 820×1180 y 1280×800: build sin avisos, <span class="ok">consola sin warnings ni errores</span>, sin scroll horizontal, botones de 48 px. También se probó el flujo completo: buscar «4092» deja 1 paquete; el filtro «Crítica» deja 2; «Inspeccionar» sube el KPI y muestra el toast; una búsqueda sin resultados muestra el estado vacío; «Limpiar filtros» recupera los 6 paquetes conservando las inspecciones.</div>
+
+<h2>4. Limitaciones conocidas</h2>
+<ul>
+  <li>Los datos viven en memoria y se pierden al recargar. El siguiente paso sería persistirlos en un backend o en <code>@ionic/storage</code>, cambiando solo <code>PackageService</code>.</li>
+  <li>El tema declara la fuente <em>Inter</em>, pero no la carga, así que se usa la fuente del sistema (Segoe UI / Roboto). No afecta al contraste.</li>
+  <li>El proyecto fija Angular 19 / Ionic 8 (los de la guía). Las versiones más recientes (Angular 22 / Ionic 9) mantienen las mismas APIs de Signals.</li>
+</ul>
+
+<h2>5. Ejecución y despliegue</h2>
+<pre>npm install
+npm start          # ng serve → http://localhost:4200
+npm run build      # producción en www/ (lo mismo que ejecuta Vercel)</pre>
+<p>Vercel lee <code>vercel.json</code> (build <code>npm run build</code>, salida <code>www</code>, regla <em>rewrite</em> a <code>index.html</code>). Esa regla evita el 404 al recargar <code>/home</code>, porque es una ruta del router de Angular, no un fichero del servidor.</p>
+
+<h2>6. Capturas (producción)</h2>
+<div class="shots">
+  <figure><img src="capturas/mobile.png" style="width:112px"><figcaption>Mobile · 360×800</figcaption></figure>
+  <figure><img src="capturas/mobile-filtro.png" style="width:112px"><figcaption>Filtro «Crítica»</figcaption></figure>
+  <figure><img src="capturas/mobile-toast.png" style="width:112px"><figcaption>Inspeccionar + toast</figcaption></figure>
+  <figure><img src="capturas/mobile-vacio.png" style="width:112px"><figcaption>Estado vacío</figcaption></figure>
+  <figure><img src="capturas/tablet.png" style="width:156px"><figcaption>Tablet · 820×1180</figcaption></figure>
+</div>
+<div class="shots" style="margin-top:10px">
+  <figure><img src="capturas/desktop.png" style="width:520px"><figcaption>Desktop · 1280×800</figcaption></figure>
+</div>
+
+</body>
+</html>
