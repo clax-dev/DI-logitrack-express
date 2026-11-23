@@ -20,11 +20,11 @@
   <ion-toolbar class="toolbar-controls">
     <ion-searchbar
       class="tracking-searchbar"
-      placeholder="Buscar por código (ej. LTK-4092-ES)..."
+      placeholder="Buscar por código o hub (ej. LTK-4092)..."
       inputmode="search"
       [debounce]="250"
       [value]="searchTerm()"
-      aria-label="Buscar paquete por código de seguimiento"
+      aria-label="Buscar paquete por código de seguimiento o hub de destino"
       (ionInput)="onSearchInput($event)"
     ></ion-searchbar>
 
@@ -116,7 +116,7 @@
             No se encontraron envíos en la cinta para los criterios de búsqueda y prioridad seleccionados.
           </p>
           @if (searchTerm() || selectedPriority() !== 'ALL') {
-            <ion-button fill="outline" class="empty-state__btn" (click)="resetDemo()">
+            <ion-button fill="outline" class="empty-state__btn" (click)="clearFilters()">
               Limpiar filtros
             </ion-button>
           }

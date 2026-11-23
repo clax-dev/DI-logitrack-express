@@ -146,6 +146,16 @@ export class HomePage {
     this.showFeedback('Cinta transportadora reiniciada con datos iniciales.');
   }
 
+  /**
+   * Fix auditoría: "Limpiar filtros" llamaba a resetDemo(), que además de los filtros
+   * restauraba los paquetes y borraba las inspecciones hechas por el operario.
+   * Ahora solo limpia los filtros; el estado de la cinta no se toca.
+   */
+  protected clearFilters(): void {
+    this.searchTerm.set('');
+    this.selectedPriority.set('ALL');
+  }
+
   protected onToastDismiss(): void {
     this.isToastOpen.set(false);
   }
